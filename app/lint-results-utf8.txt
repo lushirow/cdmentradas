@@ -1,0 +1,149 @@
+﻿
+> app@0.1.0 lint
+> eslint
+
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\admin\dashboard\DashboardClient.tsx
+  198:61  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\admin\dashboard\events\[id]\edit\page.tsx
+   55:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  134:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\admin\dashboard\events\new\page.tsx
+  61:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\admin\dashboard\page.tsx
+  16:41  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-explicit-any
+  39:13  error  Error: Avoid constructing JSX within try/catch
+
+React does not immediately render components when JSX is rendered, so any errors from this component will not be caught by the try/catch. To catch errors in rendering a given component, wrap that component in an error boundary. (https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary).
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\admin\dashboard\page.tsx:39:13
+  37 |
+  38 |         return (
+> 39 |             <>
+     |             ^^
+> 40 |                 <Header />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 41 |                 <DashboardClient buyers={buyers} events={events} />
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 42 |             </>
+     | ^^^^^^^^^^^^^^^^ Avoid constructing JSX within try/catch
+  43 |         );
+  44 |
+  45 |     } catch (error: any) {  react-hooks/error-boundaries
+  40:17  error  Error: Avoid constructing JSX within try/catch
+
+React does not immediately render components when JSX is rendered, so any errors from this component will not be caught by the try/catch. To catch errors in rendering a given component, wrap that component in an error boundary. (https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary).
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\admin\dashboard\page.tsx:40:17
+  38 |         return (
+  39 |             <>
+> 40 |                 <Header />
+     |                 ^^^^^^^^^^ Avoid constructing JSX within try/catch
+  41 |                 <DashboardClient buyers={buyers} events={events} />
+  42 |             </>
+  43 |         );                                                                                                                                  react-hooks/error-boundaries
+  41:17  error  Error: Avoid constructing JSX within try/catch
+
+React does not immediately render components when JSX is rendered, so any errors from this component will not be caught by the try/catch. To catch errors in rendering a given component, wrap that component in an error boundary. (https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary).
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\admin\dashboard\page.tsx:41:17
+  39 |             <>
+  40 |                 <Header />
+> 41 |                 <DashboardClient buyers={buyers} events={events} />
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Avoid constructing JSX within try/catch
+  42 |             </>
+  43 |         );
+  44 |                                                                                                          react-hooks/error-boundaries
+  45:21  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-explicit-any
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\api\admin\events\[id]\route.ts
+   26:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  107:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  140:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\api\admin\events\route.ts
+   8:27  warning  'request' is defined but never used       @typescript-eslint/no-unused-vars
+  17:21  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  56:21  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\api\checkout\route.ts
+   4:18  warning  'query' is defined but never used         @typescript-eslint/no-unused-vars
+  70:21  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\api\events\route.ts
+  13:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  60:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\api\webhooks\mercadopago\route.ts
+  2:10  warning  'client' is defined but never used  @typescript-eslint/no-unused-vars
+  4:8   warning  'crypto' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\checkout\page.tsx
+  90:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\evento\[id]\page.tsx
+  8:36  warning  'Star' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\login\page.tsx
+  7:8  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\page.tsx
+  4:10  warning  'Button' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\app\success\page.tsx
+  26:125  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  26:138  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\components\auth\UserMenu.tsx
+  5:26  warning  'UserIcon' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\components\checkout\CheckoutButton.tsx
+  50:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\components\events\EventCountdown.tsx
+  34:8  warning  React Hook useEffect has a missing dependency: 'calculateTimeLeft'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\components\events\YouTubePlayer.tsx
+  3:10  warning  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+  3:21  warning  'useState' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\lib\auth.ts
+  32:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\lib\db.ts
+  25:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  39:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  45:57  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  51:54  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\scripts\debug-dns.js
+  2:13  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\scripts\init-db.js
+  2:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\scripts\seed-event.js
+  2:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\scripts\set-admin.js
+  2:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+C:\Users\hugoa\Desktop\cdmentradas\cdmentradas\cdmentradas\app\scripts\test-mp.js
+  2:27  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:20  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  5:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+Γ£û 53 problems (40 errors, 13 warnings)
+

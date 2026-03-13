@@ -44,7 +44,7 @@ export async function createTicketPreference(
                 failure: `${baseUrl}/failure`,
                 pending: `${baseUrl}/pending`,
             },
-            // auto_return: 'approved', // Disabled to avoid localhost validation error
+            auto_return: 'approved', // Auto-redirect to success page after payment
             external_reference: payer.email,
             metadata: {
                 event_id: metadata.event_id,

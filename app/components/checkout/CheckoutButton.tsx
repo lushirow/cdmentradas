@@ -64,9 +64,9 @@ export function CheckoutButton({ eventId, price, disabled }: CheckoutButtonProps
             disabled={disabled || loading}
         >
             {loading ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-                <ShoppingCart className="mr-2 h-5 w-5" />
+                <ShoppingCart className="h-5 w-5" />
             )}
             {loading ? 'Procesando...' : `Comprar Entrada ($${price / 100})`}
         </Button>

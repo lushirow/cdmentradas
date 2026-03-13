@@ -99,9 +99,9 @@ export function LiveChat({ currentUser }: { currentUser: string }) {
     };
 
     return (
-        <Card className="flex flex-col h-[600px] lg:h-full bg-club-gray border border-club-yellow/10 overflow-hidden">
+        <Card className="flex flex-col h-[600px] lg:h-full bg-club-black/95 border border-white/5 overflow-hidden shadow-2xl rounded-xl">
             {/* Chat Head */}
-            <div className="p-4 border-b border-white/10 flex justify-between items-center bg-club-gray/80">
+            <div className="p-4 border-b border-white/10 flex justify-between items-center bg-club-gray/40">
                 <h3 className="font-bold text-white uppercase tracking-wider text-sm flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     Chat en Vivo
@@ -137,17 +137,17 @@ export function LiveChat({ currentUser }: { currentUser: string }) {
             </div>
 
             {/* Chat Input */}
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-white/10 bg-black/20">
+            <form onSubmit={handleSendMessage} className="p-4 border-t border-white/10 bg-club-gray/40">
                 <div className="flex gap-2">
                     <input
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        placeholder="Escribe un mensaje..."
-                        className="flex-1 bg-club-black border border-white/20 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-club-yellow transition-colors placeholder:text-foreground/40"
+                        placeholder="Escribí un mensaje..."
+                        className="flex-1 bg-black/50 border border-white/10 rounded-full px-4 py-2 text-sm text-white focus:outline-none focus:border-club-yellow/50 transition-colors placeholder:text-foreground/40"
                     />
-                    <Button type="submit" size="sm" className="px-3" disabled={!inputValue.trim()}>
-                        <Send size={16} />
+                    <Button type="submit" size="sm" className="rounded-full bg-club-yellow text-club-black hover:bg-club-yellow/80 p-2 w-9 h-9 flex items-center justify-center p-0" disabled={!inputValue.trim()}>
+                        <Send size={16} className="-ml-1" />
                     </Button>
                 </div>
             </form>

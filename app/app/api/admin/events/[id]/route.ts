@@ -92,6 +92,10 @@ export async function PUT(
             updates.push(`ubicacion = $${paramIndex++}`);
             values.push(body.ubicacion);
         }
+        if (body.campeonato !== undefined) {
+            updates.push(`campeonato = $${paramIndex++}`);
+            values.push(body.campeonato);
+        }
 
         if (updates.length === 0) {
             return NextResponse.json({ error: 'No se enviaron datos para actualizar' }, { status: 400 });

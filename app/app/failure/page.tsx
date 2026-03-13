@@ -10,7 +10,7 @@ export default function FailurePage() {
     return (
         <main className="min-h-screen">
             <Header />
-            <div className="container mx-auto px-4 py-16 flex justify-center">
+            <div className="container mx-auto px-4 py-16 pt-32 flex justify-center">
                 <Card className="max-w-md w-full text-center p-8 bg-club-gray border border-red-500/30 shadow-2xl">
                     <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                         <XCircle className="text-red-500" size={48} />

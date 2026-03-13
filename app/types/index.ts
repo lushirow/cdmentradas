@@ -16,6 +16,7 @@ export interface Event {
     stream_enabled: boolean;
     ventas_habilitadas: boolean;
     ubicacion?: string;
+    campeonato?: string;
     created_at?: Date;
 }
 
@@ -37,6 +38,7 @@ export interface CreateEventDTO {
     precio: number;
     foto_portada_url?: string;
     ubicacion?: string;
+    campeonato?: string;
 }
 
 export interface UpdateEventDTO {
@@ -48,4 +50,5 @@ export interface UpdateEventDTO {
     stream_enabled?: boolean;
     ventas_habilitadas?: boolean;
     ubicacion?: string;
+    campeonato?: string;
 }

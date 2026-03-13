@@ -10,8 +10,12 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get('code');
 
-    // CHANGE: Updated to standard callback path
-    const redirectUri = `${process.env.NEXTAUTH_URL}/api/auth/callback/google`;
+    // Get the dynamic host to support localhost, LAN IP, and production seamlessly
+    const host = request.headers.get('host') || 'localhost:3000';
+    const protocol = request.headers.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
+    
+    // Construct the absolute callback URL dynamically
+    const redirectUri = `${protocol}://${host}/api/auth/callback/google`;
 
     // Step 1: If no code, redirect to Google OAuth
     if (!code) {

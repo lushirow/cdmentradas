@@ -32,7 +32,7 @@ export default function LoginPage() {
             <Card className="w-full max-w-md bg-club-black border-club-yellow/30 shadow-2xl shadow-club-yellow/10">
                 <div className="text-center mb-8">
                     <Image
-                        src="/escudo-principal.png"
+                        src="/logocdm.png"
                         alt="CDM"
                         width={80}
                         height={80}

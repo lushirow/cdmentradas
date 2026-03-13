@@ -43,7 +43,11 @@ export async function POST(request: NextRequest) {
         }
 
         // 5. Create MercadoPago preference
-        console.log('Creating MP Preference with base URL:', process.env.NEXTAUTH_URL);
+        const host = request.headers.get('host') || 'localhost:3000';
+        const protocol = request.headers.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
+        const baseUrl = `${protocol}://${host}`;
+
+        console.log(`Creating MP Preference with base URL: ${baseUrl}`);
 
         const preference = await createTicketPreference(
             {
@@ -58,7 +62,8 @@ export async function POST(request: NextRequest) {
             {
                 event_id: event.id,
                 user_email: user.email,
-            }
+            },
+            baseUrl
         );
 
         if (!preference.id && !preference.init_point) {

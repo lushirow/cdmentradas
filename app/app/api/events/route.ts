@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
 
         // 4. Insert into DB
         const sql = `
-      INSERT INTO events (titulo, fecha_hora, precio, foto_portada_url, stream_enabled, ventas_habilitadas)
-      VALUES ($1, $2, $3, $4, false, true)
+      INSERT INTO events (titulo, fecha_hora, precio, foto_portada_url, stream_enabled, ventas_habilitadas, campeonato)
+      VALUES ($1, $2, $3, $4, false, true, $5)
       RETURNING *
     `;
 
@@ -53,7 +53,8 @@ export async function POST(request: NextRequest) {
             body.titulo,
             body.fecha_hora, // Ensure this is a valid date string/object
             body.precio,
-            body.foto_portada_url || null
+            body.foto_portada_url || null,
+            body.campeonato || 'Liga del Sur Riojano'
         ]);
 
         return NextResponse.json(result.rows[0], { status: 201 });

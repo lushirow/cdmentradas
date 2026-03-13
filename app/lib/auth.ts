@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { getOne } from './db';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET);
 
@@ -7,6 +8,7 @@ export interface User {
     email: string;
     nombre: string;
     role: 'socio' | 'admin';
+    session_token?: string;
 }
 
 export interface Session {
@@ -33,7 +35,7 @@ export async function verifyToken(token: string): Promise<Session | null> {
     }
 }
 
-// Get current user from cookies (No DB dependency)
+// Get current user from cookies (Cross-checked with DB for Single-Device)
 export async function getCurrentUser(): Promise<User | null> {
     const cookieStore = await cookies();
     const token = cookieStore.get('auth-token')?.value;
@@ -41,7 +43,26 @@ export async function getCurrentUser(): Promise<User | null> {
     if (!token) return null;
 
     const session = await verifyToken(token);
-    return session?.user || null;
+    if (!session || !session.user) return null;
+
+    // Cross-check session_token with database to ensure this is the active device
+    try {
+        const dbUser = await getOne<{ session_token: string }>(
+            'SELECT session_token FROM users WHERE email = $1',
+            [session.user.email]
+        );
+
+        if (!dbUser || dbUser.session_token !== session.user.session_token) {
+            // The token is invalid (user logged in somewhere else or user deleted)
+            await clearAuthCookie();
+            return null;
+        }
+
+        return session.user;
+    } catch (error) {
+        console.error('Session validation error:', error);
+        return null;
+    }
 }
 
 // Require authentication (throws if not authenticated)

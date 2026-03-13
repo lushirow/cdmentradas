@@ -72,7 +72,7 @@ export function EventCard({ event }: EventCardProps) {
 
                         <div className="flex items-center text-foreground/80">
                             <Trophy className="text-club-yellow mr-3" size={20} />
-                            <span>Liga del Sur Riojano</span>
+                            <span>{event.campeonato || 'Amistoso'}</span>
                         </div>
                     </div>
 

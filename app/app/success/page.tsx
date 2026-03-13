@@ -10,7 +10,7 @@ export default function SuccessPage() {
     return (
         <main className="min-h-screen">
             <Header />
-            <div className="container mx-auto px-4 py-16 flex justify-center">
+            <div className="container mx-auto px-4 py-16 pt-32 flex justify-center">
                 <Card className="max-w-md w-full text-center p-8 bg-club-gray border border-green-500/30 shadow-2xl">
                     <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle className="text-green-500" size={48} />

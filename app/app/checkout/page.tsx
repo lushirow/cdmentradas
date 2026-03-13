@@ -106,7 +106,7 @@ export default function CheckoutPage() {
         return (
             <main className="min-h-screen bg-background">
                 <Header />
-                <div className="container mx-auto px-4 py-12 flex justify-center">
+                <div className="container mx-auto px-4 py-12 pt-28 flex justify-center">
                     <Card className="max-w-md w-full bg-club-gray/50 border-red-500/20 p-8 text-center">
                         <AlertCircle className="mx-auto text-red-500 mb-4" size={48} />
                         <h2 className="text-xl font-bold text-white mb-2">Lo sentimos</h2>
@@ -138,7 +138,7 @@ export default function CheckoutPage() {
         <main className="min-h-screen bg-background">
             <Header />
 
-            <div className="container mx-auto px-4 py-12">
+            <div className="container mx-auto px-4 pt-28 pb-12">
                 <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-8 items-start">
 
                     {/* Resumen de Compra */}

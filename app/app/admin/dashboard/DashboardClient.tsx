@@ -50,7 +50,7 @@ export default function DashboardClient({ buyers, events }: DashboardClientProps
 
     return (
         <div className="min-h-screen bg-background">
-            <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 pt-28 pb-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-club-yellow mb-2">Panel de Control</h1>

@@ -1,25 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #ffffff;
+  --background: #000000; /* Pure black for maximum cinematic contrast */
+  --foreground: #f8f9fa; /* High-readability off-white text */
 
   /* Colores Primarios CDM */
-  --club-yellow: #FFD700;
-  --club-black: #000000;
+  --club-yellow: #FFC61E;
+  --club-black: #050505; /* Barely off-black for card backgrounds if needed */
 
-  /* Variantes de Amarillo */
-  --club-yellow-bright: #FFEB3B;
-  --club-yellow-medium: #FFC107;
-  --club-yellow-dark: #F9A825;
+  /* Variantes de Amarillo (Acento de Acción) */
+  --club-yellow-bright: #FFE066;
+  --club-yellow-medium: #FFC61E;
+  --club-yellow-dark: #cc9f18;
 
-  /* Grises */
-  --club-gray: #1a1a1a;
-  --club-gray-medium: #333333;
+  /* Grises (Solo Mute/Borders) */
+  --club-gray: #121212;
+  --club-gray-medium: #1f1f1f;
 
-  /* Gradientes */
-  --gradient-primary: linear-gradient(135deg, #FFD700 0%, #FFC107 100%);
-  --gradient-shield: linear-gradient(180deg, #FFD700 0%, #F9A825 100%);
+  /* Gradientes Cinematográficos */
+  --gradient-primary: linear-gradient(135deg, #FFC61E 0%, #D89C00 100%);
+  --gradient-vignette: linear-gradient(to top, #000000 0%, transparent 60%, transparent 100%);
+  --gradient-overlay: linear-gradient(90deg, #000000 0%, rgba(0,0,0,0.4) 40%, transparent 100%);
 }
 
 @theme inline {

@@ -21,7 +21,8 @@ export async function createTicketPreference(
     metadata: {
         event_id: number;
         user_email: string;
-    }
+    },
+    baseUrl: string
 ) {
     try {
         const preferenceData = {
@@ -39,9 +40,9 @@ export async function createTicketPreference(
                 name: payer.name,
             },
             back_urls: {
-                success: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/success`,
-                failure: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/failure`,
-                pending: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/pending`,
+                success: `${baseUrl}/success`,
+                failure: `${baseUrl}/failure`,
+                pending: `${baseUrl}/pending`,
             },
             // auto_return: 'approved', // Disabled to avoid localhost validation error
             external_reference: payer.email,
@@ -49,7 +50,7 @@ export async function createTicketPreference(
                 event_id: metadata.event_id,
                 user_email: metadata.user_email
             },
-            notification_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/webhooks/mercadopago`
+            notification_url: `${baseUrl}/api/webhooks/mercadopago`
         };
 
         console.log('MP Preference Payload:', JSON.stringify(preferenceData, null, 2));

@@ -30,8 +30,12 @@ export default function EditEventClient({ id, initialEvent }: { id: string, init
     useEffect(() => {
         if (initialEvent) {
             const date = new Date(initialEvent.fecha_hora);
-            date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-            const formattedDate = date.toISOString().slice(0, 16);
+            // Convert UTC timestamp to Argentina time (UTC-3) for datetime-local input
+            // The API will re-append -03:00 on save, so we must show local AR time here
+            const arOffset = -3 * 60; // Argentina is UTC-3 in minutes
+            const localMs = date.getTime() + arOffset * 60 * 1000;
+            const localDate = new Date(localMs);
+            const formattedDate = localDate.toISOString().slice(0, 16);
 
             setFormData({
                 titulo: initialEvent.titulo,

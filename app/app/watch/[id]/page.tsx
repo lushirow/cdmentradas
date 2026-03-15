@@ -39,7 +39,7 @@ export default async function WatchPage({ params }: PageProps) {
     // 1. Auth Guard - redirect to login instead of throwing a server error
     const user = await getCurrentUser();
     if (!user) {
-        redirect(`/admin/login?from=/watch/${id}`);
+        redirect(`/login?from=/watch/${id}`);
     }
 
     // 2. Data Fetching

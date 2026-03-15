@@ -11,7 +11,7 @@ interface EventPosterProps {
 
 export function EventPoster({ event, isPast }: EventPosterProps) {
     const eventDate = new Date(event.fecha_hora);
-    const timeStr = eventDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    const timeStr = eventDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' });
 
     return (
         <Link href={`/evento/${event.id}`} className="block group w-64 md:w-72 flex-shrink-0">

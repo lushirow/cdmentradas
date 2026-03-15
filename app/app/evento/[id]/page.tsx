@@ -39,8 +39,9 @@ export default async function EventPage({ params }: PageProps) {
     }
 
     const eventDate = new Date(event.fecha_hora);
-    const dateStr = eventDate.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
-    const timeStr = eventDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    const TZ = { timeZone: 'America/Argentina/Buenos_Aires' };
+    const dateStr = eventDate.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', ...TZ });
+    const timeStr = eventDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', ...TZ });
 
     return (
         <main className="min-h-screen bg-black overflow-x-hidden">

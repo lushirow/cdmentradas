@@ -90,7 +90,7 @@ export default async function Home() {
                             </span>
                             {featuredEvent && (
                                 <span className="text-white/80 text-sm font-semibold tracking-wide">
-                                    {new Date(featuredEvent.fecha_hora).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                    {new Date(featuredEvent.fecha_hora).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Argentina/Buenos_Aires' })}
                                 </span>
                             )}
                         </div>

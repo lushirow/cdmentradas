@@ -39,8 +39,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Append -03:00 to force the timestamp to be interpreted as Argentina Time
-        const localTimestamp = `${body.fecha_hora}-03:00`;
+        // Convert Argentina time (UTC-3) to UTC by adding 3 hours
+        // TIMESTAMP WITHOUT TIME ZONE ignores -03:00 suffix, so we convert explicitly
+        const arDate = new Date(`${body.fecha_hora}:00Z`);
+        arDate.setUTCHours(arDate.getUTCHours() + 3);
+        const localTimestamp = arDate.toISOString();
 
         const result = await query(
             `INSERT INTO events (

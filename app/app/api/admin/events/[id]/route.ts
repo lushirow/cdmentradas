@@ -66,7 +66,9 @@ export async function PUT(
         }
         if (body.fecha_hora !== undefined) {
             updates.push(`fecha_hora = $${paramIndex++}`);
-            values.push(`${body.fecha_hora}-03:00`);
+            const arDate = new Date(`${body.fecha_hora}:00Z`);
+            arDate.setUTCHours(arDate.getUTCHours() + 3);
+            values.push(arDate.toISOString());
         }
         if (body.precio !== undefined) {
             updates.push(`precio = $${paramIndex++}`);

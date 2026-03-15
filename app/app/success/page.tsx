@@ -18,12 +18,12 @@ export default function SuccessPage() {
 
                     <h1 className="text-3xl font-bold text-white mb-2">¡Pago Exitoso!</h1>
                     <p className="text-foreground/70 mb-8">
-                        Tu entrada ha sido confirmada. Te enviamos los detalles por email.
+                        Tu entrada ha sido confirmada.
                     </p>
 
                     <div className="space-y-4">
                         <p className="text-sm bg-club-yellow/10 text-club-yellow p-4 rounded-lg">
-                            Podrás acceder a la transmisión 15 minutos antes del partido desde la página del evento o desde "Mis Entradas".
+                            Podrás acceder a la transmisión 5 minutos antes del partido desde la página del evento o desde "Mis Entradas".
                         </p>
 
                         <Link href="/" className="block">

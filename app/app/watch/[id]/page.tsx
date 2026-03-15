@@ -1,4 +1,4 @@
-import { requireAuth } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
 import { getOne } from '@/lib/db';
 import { Event, Purchase } from '@/types';
 import { notFound, redirect } from 'next/navigation';
@@ -34,11 +34,15 @@ async function getEventAndValidation(eventId: string, userEmail: string, isAdmin
 }
 
 export default async function WatchPage({ params }: PageProps) {
-    // 1. Auth Guard
-    const user = await requireAuth();
+    const { id } = await params;
+
+    // 1. Auth Guard - redirect to login instead of throwing a server error
+    const user = await getCurrentUser();
+    if (!user) {
+        redirect(`/admin/login?from=/watch/${id}`);
+    }
 
     // 2. Data Fetching
-    const { id } = await params;
     const { event, hasAccess } = await getEventAndValidation(id, user.email, user.role === 'admin');
 
     // 3. Event not found

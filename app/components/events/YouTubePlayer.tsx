@@ -1,355 +1,239 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, Maximize, Volume2, VolumeX, Radio } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Play, Pause, Maximize, Minimize, Volume2, VolumeX } from 'lucide-react';
 
 interface YouTubePlayerProps {
     videoId: string;
+    titulo?: string;
+    campeonato?: string;
 }
 
-declare global {
-    interface Window {
-        onYouTubeIframeAPIReady: () => void;
-        YT: {
-            Player: new (id: string, config: object) => YouTubePlayerInstance;
-            PlayerState: { PLAYING: number; PAUSED: number };
-        };
-        _ytApiLoading?: boolean;
-    }
+function extractYouTubeId(urlOrId: string) {
+    if (!urlOrId) return '';
+    // Si ya es un ID de 11 caracteres, devolverlo
+    if (/^[a-zA-Z0-9_-]{11}$/.test(urlOrId)) return urlOrId;
+    
+    // Intentar extraer de varios formatos de URLs
+    const match = urlOrId.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/live\/)([^"&?\/\s]{11})/i);
+    return match ? match[1] : urlOrId;
 }
 
-interface YouTubePlayerInstance {
-    playVideo: () => void;
-    pauseVideo: () => void;
-    mute: () => void;
-    unMute: () => void;
-    setVolume: (v: number) => void;
-    seekTo: (t: number, allowSeekAhead: boolean) => void;
-    getCurrentTime: () => number;
-    getDuration: () => number;
-    destroy: () => void;
-}
-
-type YTEvent = { target: YouTubePlayerInstance; data: number };
-
-/**
- * Load the YouTube IFrame API once across all component instances.
- * Chains callbacks so multiple mounts don't race each other.
- */
-function loadYouTubeAPI(onReady: () => void) {
-    if (window.YT?.Player) {
-        onReady();
-        return;
-    }
-
-    // Chain onto any existing callback to support multiple concurrent mounts
-    const prev = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-        prev?.();
-        onReady();
-    };
-
-    if (!window._ytApiLoading) {
-        window._ytApiLoading = true;
-        const tag = document.createElement('script');
-        tag.src = 'https://www.youtube.com/iframe_api';
-        document.head.appendChild(tag);
-    }
-}
-
-export function YouTubePlayer({ videoId }: YouTubePlayerProps) {
-    const playerRef = useRef<YouTubePlayerInstance | null>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-    // Ref mirrors isPlaying so setTimeout closures never read a stale value
-    const isPlayingRef = useRef(false);
-    const [isPlaying, setIsPlaying] = useState(false);
-
-    const [isPlayerReady, setIsPlayerReady] = useState(false);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
-    const [volume, setVolume] = useState(100);
+export function YouTubePlayer({ videoId, titulo, campeonato }: YouTubePlayerProps) {
+    const cleanVideoId = extractYouTubeId(videoId);
+    const [isStarted, setIsStarted] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    
+    // Custom Player Controls State
+    const [isPlaying, setIsPlaying] = useState(true);
     const [isMuted, setIsMuted] = useState(false);
     const [showControls, setShowControls] = useState(true);
-    const [isLive, setIsLive] = useState(true);
+    const [volume, setVolume] = useState(100);
 
-    const setPlayingState = (playing: boolean) => {
-        isPlayingRef.current = playing;
-        setIsPlaying(playing);
-    };
+    const containerRef = useRef<HTMLDivElement>(null);
+    const iframeRef = useRef<HTMLIFrameElement>(null);
+    const timeoutRef = useRef<NodeJS.Timeout>(null);
 
-    // ── Initialize / destroy player ──────────────────────────────────────────
-    useEffect(() => {
-        let cancelled = false;
-
-        loadYouTubeAPI(() => {
-            if (cancelled) return;
-
-            if (playerRef.current) {
-                playerRef.current.destroy();
-                playerRef.current = null;
-            }
-
-            playerRef.current = new window.YT.Player(`youtube-player-${videoId}`, {
-                videoId,
-                playerVars: {
-                    autoplay: 1,
-                    controls: 0,
-                    modestbranding: 1,
-                    rel: 0,
-                    iv_load_policy: 3,
-                    disablekb: 1,
-                    origin: window.location.origin,
-                },
-                events: {
-                    onReady: (event: YTEvent) => {
-                        if (cancelled) return;
-                        setIsPlayerReady(true);
-                        setDuration(event.target.getDuration());
-                    },
-                    onStateChange: (event: YTEvent) => {
-                        if (cancelled) return;
-                        setPlayingState(event.data === 1 /* YT.PlayerState.PLAYING */);
-                    },
-                },
-            });
-        });
-
-        return () => {
-            cancelled = true;
-            if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-            if (playerRef.current) {
-                playerRef.current.destroy();
-                playerRef.current = null;
-            }
-            setIsPlayerReady(false);
-        };
-    }, [videoId]);
-
-    // ── Sync volume / mute → player ──────────────────────────────────────────
-    useEffect(() => {
-        const p = playerRef.current;
-        if (!p || !isPlayerReady) return;
-        if (isMuted) {
-            p.mute();
-        } else {
-            p.unMute();
-            p.setVolume(volume);
-        }
-    }, [volume, isMuted, isPlayerReady]);
-
-    // ── Poll current time & live-edge detection ───────────────────────────────
-    useEffect(() => {
-        if (!isPlayerReady) return;
-        const interval = setInterval(() => {
-            const p = playerRef.current;
-            if (!p) return;
-            const current = p.getCurrentTime();
-            const total = p.getDuration();
-            setCurrentTime(current);
-            if (total > 0) setDuration(total);
-            setIsLive(total > 0 && (total - current) < 10);
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [isPlayerReady]);
-
-    // ── Controls auto-hide ────────────────────────────────────────────────────
-    const scheduleHide = useCallback(() => {
-        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-        controlsTimeoutRef.current = setTimeout(() => {
-            if (isPlayingRef.current) setShowControls(false);
-        }, 3000);
-    }, []);
-
-    const handleMouseMove = useCallback(() => {
+    // Fade out controls after 3 seconds of inactivity
+    const resetControlsTimeout = () => {
         setShowControls(true);
-        scheduleHide();
-    }, [scheduleHide]);
-
-    // ── Playback actions ──────────────────────────────────────────────────────
-    const togglePlay = useCallback(() => {
-        const p = playerRef.current;
-        if (!p) return;
-        isPlayingRef.current ? p.pauseVideo() : p.playVideo();
-    }, []);
-
-    /** First click shows controls; second click toggles play — just like YouTube */
-    const handleVideoClick = useCallback(() => {
-        if (!showControls) {
-            setShowControls(true);
-            scheduleHide();
-        } else {
-            togglePlay();
-        }
-    }, [showControls, scheduleHide, togglePlay]);
-
-    const goLive = useCallback(() => {
-        const p = playerRef.current;
-        if (!p) return;
-        p.seekTo(p.getDuration(), true);
-    }, []);
-
-    const handleSeek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const p = playerRef.current;
-        if (!p) return;
-        const seekTo = parseFloat(e.target.value);
-        p.seekTo(seekTo, true);
-        setCurrentTime(seekTo);
-    }, []);
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-    const formatTime = (seconds: number): string => {
-        if (!isFinite(seconds) || seconds < 0) return '0:00';
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = Math.floor(seconds % 60);
-        const parts = h > 0 ? [h, m, s] : [m, s];
-        return parts.map((v, i) => (i === 0 ? String(v) : String(v).padStart(2, '0'))).join(':');
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => setShowControls(false), 3000);
     };
 
-    // Guard against NaN when duration is 0
-    const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
+    useEffect(() => {
+        if (isStarted) {
+            resetControlsTimeout();
+        }
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, [isStarted]);
 
-    // ── Render ────────────────────────────────────────────────────────────────
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
+
+    const toggleFullscreen = () => {
+        if (!containerRef.current) return;
+
+        if (!document.fullscreenElement) {
+            containerRef.current.requestFullscreen().then(() => {
+                // Try to lock orientation to landscape on mobile
+                try {
+                    if (screen.orientation && (screen.orientation as any).lock) {
+                        (screen.orientation as any).lock('landscape').catch(() => {});
+                    }
+                } catch (e) {}
+            }).catch((err) => {
+                console.error(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+            try {
+                if (screen.orientation && screen.orientation.unlock) {
+                    screen.orientation.unlock();
+                }
+            } catch (e) {}
+        }
+    };
+
+    const sendCommand = (func: string, args: any[] = []) => {
+        if (iframeRef.current && iframeRef.current.contentWindow) {
+            iframeRef.current.contentWindow.postMessage(
+                JSON.stringify({ event: 'command', func, args }),
+                '*'
+            );
+        }
+    };
+
+    const togglePlay = () => {
+        const nextState = !isPlaying;
+        setIsPlaying(nextState);
+        sendCommand(nextState ? 'playVideo' : 'pauseVideo');
+        resetControlsTimeout();
+    };
+
+    const toggleMute = () => {
+        const nextState = !isMuted;
+        setIsMuted(nextState);
+        sendCommand(nextState ? 'mute' : 'unMute');
+        resetControlsTimeout();
+    };
+
+    const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newVolume = parseInt(e.target.value);
+        setVolume(newVolume);
+        setIsMuted(newVolume === 0);
+        sendCommand('setVolume', [newVolume]);
+        resetControlsTimeout();
+    };
+
     return (
-        <div
+        <div 
             ref={containerRef}
-            className="relative w-full pb-[56.25%] bg-club-black rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(255,215,0,0.08)] border border-club-yellow/5"
-            onMouseMove={handleMouseMove}
-            onMouseLeave={() => {
-                if (isPlayingRef.current) setShowControls(false);
-            }}
+            className="absolute inset-0 w-full h-full bg-black select-none cursor-default group"
+            onMouseMove={resetControlsTimeout}
+            onTouchStart={resetControlsTimeout}
+            onContextMenu={(e) => e.preventDefault()}
         >
-            {/* YouTube player mount point */}
-            <div
-                id={`youtube-player-${videoId}`}
-                className="absolute inset-0 pointer-events-none scale-[1.01]"
-            />
+            {!isStarted ? (
+                // Pantalla de inicio personalizada (requerida para habilitar Autoplay en navegadores)
+                <div 
+                    className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-club-black cursor-pointer hover:bg-club-gray transition-colors group"
+                    onClick={() => setIsStarted(true)}
+                >
+                    <div className="w-20 h-20 bg-club-yellow rounded-full flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 transition-transform">
+                        <Play size={40} className="text-club-black ml-2" />
+                    </div>
+                    <p className="text-white font-bold text-lg md:text-xl">Haz clic para entrar a la transmisión</p>
+                    <p className="text-foreground/50 text-sm mt-2">Protección Anti-Piratería Activada</p>
+                </div>
+            ) : (
+                <>
+                    {/* 
+                        Iframe real de YouTube:
+                        - enablejsapi=1 permite mandar comandos postMessage (Play/Pause/Vol).
+                        - pointer-events-none evita que el usuario pueda cliquear el video pausándolo o yendo a YouTube.
+                        - autoplay=1 forzará la reproducción (ahora permitida porque el usuario hizo clic en la pantalla anterior).
+                    */}
+                    <iframe
+                        ref={iframeRef}
+                        className="absolute top-0 left-0 w-full h-full pointer-events-none"
+                        src={`https://www.youtube-nocookie.com/embed/${cleanVideoId}?enablejsapi=1&autoplay=1&mute=0&controls=0&modestbranding=1&rel=0&disablekb=1&fs=0&iv_load_policy=3&playsinline=1&widget_referrer=${typeof window !== 'undefined' ? window.location.origin : ''}`}
+                        title="Transmisión Oficial CDM"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        style={{ border: 'none' }}
+                    />
 
-            {/* Full-area click target — sits below the controls overlay */}
-            <div
-                className="absolute inset-0 z-10 cursor-pointer"
-                onClick={handleVideoClick}
-            />
-
-            {/* Controls overlay */}
-            <AnimatePresence>
-                {showControls && (
-                    <motion.div
-                        key="controls"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 8 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute inset-0 z-20 flex flex-col justify-between p-6 bg-gradient-to-t from-black/95 via-transparent to-black/60 pointer-events-none"
-                    >
-                        {/* ── Top: Live badge ── */}
-                        <div className="flex justify-end items-start pointer-events-auto">
-                            <motion.button
-                                whileHover={!isLive ? { scale: 1.05, boxShadow: '0 0 20px rgba(255,215,0,0.3)' } : {}}
-                                whileTap={!isLive ? { scale: 0.95 } : {}}
-                                onClick={goLive}
-                                disabled={isLive}
-                                aria-label={isLive ? 'Estás en vivo' : 'Volver al vivo'}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-xs tracking-tight transition-all backdrop-blur-md shadow-xl border select-none ${
-                                    isLive
-                                        ? 'bg-red-600/90 text-white border-red-500/50 cursor-default'
-                                        : 'bg-club-yellow/90 text-club-black border-club-yellow/50 hover:bg-club-yellow cursor-pointer'
-                                }`}
+                    {/* Top Overlay */}
+                    <div className={`absolute top-0 left-0 w-full p-4 md:p-8 bg-gradient-to-b from-black/90 via-black/40 to-transparent z-50 flex items-start justify-between transition-opacity duration-300 pointer-events-none ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+                        <div className="flex items-start gap-4">
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); window.history.back(); }}
+                                className="p-2 sm:p-3 bg-black/40 hover:bg-white/20 text-white rounded-full backdrop-blur-md transition-all cursor-pointer pointer-events-auto"
+                                title="Volver"
                             >
-                                <Radio size={14} className={isLive ? 'animate-pulse' : ''} />
-                                {isLive ? 'EN VIVO AHORA' : 'VOLVER AL VIVO'}
-                            </motion.button>
-                        </div>
-
-                        {/* ── Bottom: meta + timeline + controls ── */}
-                        <div className="space-y-4 pointer-events-auto">
-                            {/* Live dot + timestamps */}
-                            <div className="flex items-center gap-3 px-1">
-                                <div
-                                    className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                                        isLive ? 'bg-red-500 animate-pulse' : 'bg-white/20'
-                                    }`}
-                                />
-                                <span className="text-white/70 font-mono text-[11px] tabular-nums">
-                                    {formatTime(currentTime)}
-                                    <span className="text-white/30 mx-1.5">/</span>
-                                    {formatTime(duration)}
-                                </span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                            </button>
+                            <div className="flex flex-col">
+                                <h1 className="text-xl md:text-3xl font-black text-white tracking-tighter drop-shadow-md">
+                                    {titulo || 'Transmisión Oficial'}
+                                </h1>
+                                {campeonato && (
+                                    <div className="flex items-center gap-2 text-club-yellow/90 mt-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                                        <span className="text-xs md:text-sm font-bold uppercase tracking-widest">{campeonato}</span>
+                                    </div>
+                                )}
                             </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 bg-red-600/20 text-red-500 px-3 py-1.5 rounded-sm shadow-lg border border-red-500/30">
+                                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
+                                <span className="text-xs font-black uppercase tracking-widest">En Vivo</span>
+                            </div>
+                        </div>
+                    </div>
 
-                            {/* DVR timeline */}
-                            <div className="px-1">
-                                <input
-                                    type="range"
-                                    min={0}
-                                    max={duration || 100}
-                                    step={0.5}
-                                    value={currentTime}
-                                    onChange={handleSeek}
-                                    aria-label="Línea de tiempo"
-                                    className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                    {/* Overlay transparente para interceptar clics e impedir menú contextual */}
+                    <div 
+                        className="absolute inset-0 z-40 bg-transparent"
+                        onClick={togglePlay}
+                        onDoubleClick={toggleFullscreen}
+                    />
+                    
+                    {/* Barra de Controles Personalizados inferior */}
+                    <div className={`absolute bottom-0 left-0 w-full p-4 md:p-8 pt-20 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-50 flex items-center justify-between transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+                        {/* Izquierda (Play/Pause, Volumen) */}
+                        <div className="flex items-center gap-2 sm:gap-6">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                                className="p-3 sm:p-4 bg-transparent hover:bg-white/10 text-white rounded-full transition-all"
+                                title={isPlaying ? "Pausar" : "Reproducir"}
+                            >
+                                {isPlaying ? <Pause size={28} /> : <Play size={28} className="ml-1" />}
+                            </button>
+
+                            <div className="flex items-center gap-3 group/vol">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                                    className="p-2 sm:p-3 bg-transparent hover:bg-white/10 text-white rounded-full transition-all"
+                                    title={isMuted ? "Activar Sonido" : "Silenciar"}
+                                >
+                                    {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+                                </button>
+                                <input 
+                                    type="range" 
+                                    min="0" 
+                                    max="100" 
+                                    value={volume} 
+                                    onChange={handleVolumeChange}
+                                    className="w-0 md:w-24 h-1 bg-white/30 rounded-full appearance-none outline-none cursor-pointer group-hover/vol:w-24 transition-all duration-300 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-club-yellow [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-125"
                                     style={{
-                                        background: `linear-gradient(to right, #FFD700 ${progressPct}%, rgba(255,255,255,0.12) ${progressPct}%)`,
+                                        background: `linear-gradient(to right, #FFC61E ${volume}%, rgba(255,255,255,0.3) ${volume}%)`
                                     }}
                                 />
                             </div>
-
-                            {/* Control bar */}
-                            <div className="flex items-center justify-between backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl px-6 py-3 shadow-2xl">
-                                {/* Left: play/pause + volume */}
-                                <div className="flex items-center gap-6">
-                                    <motion.button
-                                        aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={togglePlay}
-                                        className="text-white hover:text-club-yellow transition-colors"
-                                    >
-                                        {isPlaying
-                                            ? <Pause size={26} fill="currentColor" />
-                                            : <Play size={26} fill="currentColor" className="ml-0.5" />
-                                        }
-                                    </motion.button>
-
-                                    <div className="flex items-center gap-3 group/volume">
-                                        <button
-                                            aria-label={isMuted ? 'Activar sonido' : 'Silenciar'}
-                                            onClick={() => setIsMuted(m => !m)}
-                                            className="text-white/70 hover:text-white transition-colors"
-                                        >
-                                            {isMuted || volume === 0
-                                                ? <VolumeX size={20} />
-                                                : <Volume2 size={20} />
-                                            }
-                                        </button>
-                                        <input
-                                            type="range"
-                                            min={0}
-                                            max={100}
-                                            value={isMuted ? 0 : volume}
-                                            onChange={e => setVolume(parseInt(e.target.value))}
-                                            aria-label="Volumen"
-                                            className="w-0 opacity-0 group-hover/volume:w-24 group-hover/volume:opacity-100 transition-all h-1 rounded-full appearance-none accent-club-yellow"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Right: fullscreen */}
-                                <button
-                                    aria-label="Pantalla completa"
-                                    onClick={() => containerRef.current?.requestFullscreen()}
-                                    className="p-2 text-white/50 hover:text-club-yellow hover:bg-white/5 rounded-full transition-all"
-                                >
-                                    <Maximize size={20} />
-                                </button>
-                            </div>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+
+                        {/* Derecha (Fullscreen) */}
+                        <button
+                            onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
+                            className="p-3 sm:p-4 bg-transparent hover:bg-white/10 text-white rounded-full transition-all"
+                            title={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+                        >
+                            {isFullscreen ? <Minimize size={24} /> : <Maximize size={24} />}
+                        </button>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

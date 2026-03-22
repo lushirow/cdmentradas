@@ -19,13 +19,13 @@ async function getHomePageData() {
         const arTimeStr = now.toISOString().slice(0, 19).replace('T', ' ');
 
         // Fetch Next (Featured) Event
-        const nextEvents = await getMany<Event>(
-            'SELECT * FROM events WHERE fecha_hora > $1 ORDER BY fecha_hora ASC LIMIT 1',
+        const nextEvents = await getMany<Event & { is_live?: boolean }>(
+            "SELECT *, CASE WHEN fecha_hora <= $1::timestamp THEN true ELSE false END as is_live FROM events WHERE fecha_hora > $1::timestamp - INTERVAL '4 hours' ORDER BY fecha_hora ASC LIMIT 1",
             [arTimeStr]
         );
         
         // Fetch Upcoming Events (excluding the featured one)
-        let upcomingQuery = 'SELECT * FROM events WHERE fecha_hora > $1';
+        let upcomingQuery = "SELECT * FROM events WHERE fecha_hora > $1::timestamp - INTERVAL '4 hours'";
         const params: any[] = [arTimeStr];
         
         if (nextEvents.length > 0) {
@@ -38,7 +38,7 @@ async function getHomePageData() {
 
         // Fetch Past Events
         const pastEvents = await getMany<Event>(
-            'SELECT * FROM events WHERE fecha_hora <= $1 ORDER BY fecha_hora DESC LIMIT 10',
+            "SELECT * FROM events WHERE fecha_hora <= $1::timestamp - INTERVAL '4 hours' ORDER BY fecha_hora DESC LIMIT 10",
             [arTimeStr]
         );
 
@@ -55,6 +55,7 @@ async function getHomePageData() {
 
 export default async function Home() {
     const { featuredEvent, upcomingEvents, pastEvents } = await getHomePageData();
+    const isLive = featuredEvent ? (featuredEvent as any).is_live : false;
     const user = await getCurrentUser();
 
     return (
@@ -85,8 +86,8 @@ export default async function Home() {
                 <div className="relative z-10 container mx-auto px-4 md:px-12 w-full">
                     <div className="max-w-3xl">
                         <div className="flex items-center gap-2 mb-4 animate-[fadeIn_1s_ease-out]">
-                            <span className="bg-club-yellow text-black text-xs font-black uppercase px-2 py-1 rounded tracking-widest shadow-[0_0_15px_rgba(255,215,0,0.5)]">
-                                Próximo Emisión
+                            <span className={`${isLive ? 'bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.5)] text-white animate-pulse' : 'bg-club-yellow shadow-[0_0_15px_rgba(255,215,0,0.5)] text-black'} text-xs font-black uppercase px-2 py-1 rounded tracking-widest`}>
+                                {isLive ? '🔴 EN VIVO AHORA' : 'Próxima Emisión'}
                             </span>
                             {featuredEvent && (
                                 <span className="text-white/80 text-sm font-semibold tracking-wide">
@@ -114,19 +115,28 @@ export default async function Home() {
                         <div className="flex flex-col sm:flex-row gap-4 animate-[fadeIn_1s_ease-out_0.6s_both]">
                             {featuredEvent ? (
                                 <>
-                                    <Link href={`/evento/${featuredEvent.id}`}>
-                                        <Button size="lg" className="w-full sm:w-auto h-14 px-8 text-lg font-bold rounded-sm shadow-2xl shadow-club-yellow/20">
-                                            {featuredEvent.ventas_habilitadas ? (
-                                                <><Ticket className="fill-black" size={24} /> Comprar Entrada</>
+                                    <Link href={isLive ? `/watch/${featuredEvent.id}` : `/evento/${featuredEvent.id}`}>
+                                        <Button size="lg" className={`w-full sm:w-auto h-14 px-8 text-lg font-bold rounded-sm shadow-2xl ${isLive ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-600/30' : 'shadow-club-yellow/20'}`}>
+                                            {isLive ? (
+                                                <><Play className="fill-white mr-2" size={24} /> Ver Ahora</>
+                                            ) : featuredEvent.ventas_habilitadas ? (
+                                                <><Ticket className="fill-black mr-2" size={24} /> Comprar Entrada</>
                                             ) : (
-                                                <><Info size={24} /> Ver Detalles</>
+                                                <><Info className="mr-2" size={24} /> Ver Detalles</>
                                             )}
                                         </Button>
                                     </Link>
-                                    {featuredEvent.stream_enabled && (
+                                    {isLive && featuredEvent.ventas_habilitadas && (
+                                        <Link href={`/evento/${featuredEvent.id}`}>
+                                            <Button size="lg" variant="outline" className="w-full sm:w-auto h-14 px-8 text-lg font-bold bg-white/20 border-white/30 text-white hover:bg-white/30 backdrop-blur-md rounded-sm">
+                                                <Ticket className="mr-2" size={24} /> Comprar Entrada
+                                            </Button>
+                                        </Link>
+                                    )}
+                                    {!isLive && featuredEvent.stream_enabled && (
                                         <Link href={`/watch/${featuredEvent.id}`}>
                                             <Button size="lg" variant="outline" className="w-full sm:w-auto h-14 px-8 text-lg font-bold bg-white/20 border-white/30 text-white hover:bg-white/30 backdrop-blur-md rounded-sm">
-                                                <Play className="fill-white" size={24} /> Transmisión
+                                                <Play className="fill-white mr-2" size={24} /> Transmisión
                                             </Button>
                                         </Link>
                                     )}

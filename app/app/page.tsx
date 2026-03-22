@@ -63,7 +63,7 @@ export default async function Home() {
             <Header user={user} />
 
             {/* MASSIVE HERO (100vh) */}
-            <div className="relative w-full h-[90vh] md:h-screen bg-black flex items-end pb-20 md:pb-32">
+            <div className="relative w-full min-h-[90vh] md:min-h-screen bg-black flex flex-col justify-end pt-32 pb-20 md:pb-32">
                 {featuredEvent?.foto_portada_url ? (
                     <Image
                         src={featuredEvent.foto_portada_url}

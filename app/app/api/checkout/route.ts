@@ -43,7 +43,10 @@ export async function POST(request: NextRequest) {
         }
 
         // 5. Create MercadoPago preference
-        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin;
+        const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost:3000';
+        const protocol = request.headers.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
+        let baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`;
+        if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1); // Remove trailing slash
 
         console.log(`Creating MP Preference with base URL: ${baseUrl}`);
 

@@ -5,8 +5,19 @@ import { query, getOne } from '@/lib/db';
 export async function POST(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
-        const topic = searchParams.get('topic') || searchParams.get('type');
-        const id = searchParams.get('id') || searchParams.get('data.id');
+        let topic = searchParams.get('topic') || searchParams.get('type');
+        let id = searchParams.get('id') || searchParams.get('data.id');
+
+        // Fallback to reading JSON body if not in query params (Webhooks vs IPN)
+        if (!id || !topic) {
+            try {
+                const body = await request.clone().json();
+                if (!topic) topic = body.type || body.topic || (body.action?.startsWith('payment') ? 'payment' : null);
+                if (!id) id = body.data?.id || body.id;
+            } catch (e) {
+                // Ignore body parse errors
+            }
+        }
 
         if (topic !== 'payment') {
             return NextResponse.json({ status: 'ignored' });

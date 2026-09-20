@@ -43,9 +43,7 @@ export async function POST(request: NextRequest) {
         }
 
         // 5. Create MercadoPago preference
-        const host = request.headers.get('host') || 'localhost:3000';
-        const protocol = request.headers.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
-        const baseUrl = `${protocol}://${host}`;
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin;
 
         console.log(`Creating MP Preference with base URL: ${baseUrl}`);
 
@@ -53,7 +51,7 @@ export async function POST(request: NextRequest) {
             {
                 title: `Entrada: ${event.titulo}`,
                 quantity: 1,
-                unit_price: event.precio / 100, // MP expects price in pesos (assuming DB cents)
+                unit_price: Number((event.precio / 100).toFixed(2)), // Ensure at most 2 decimals
             },
             {
                 email: user.email,
@@ -66,11 +64,11 @@ export async function POST(request: NextRequest) {
             baseUrl
         );
 
-        if (!preference.id && !preference.init_point) {
+        if (!preference.id && !preference.init_point && !preference.sandbox_init_point) {
             throw new Error('No init_point received from MercadoPago preference creation');
         }
 
-        return NextResponse.json({ init_point: preference.init_point });
+        return NextResponse.json({ init_point: preference.init_point || preference.sandbox_init_point });
 
     } catch (error: unknown) {
         console.error('Checkout API error:', error);
